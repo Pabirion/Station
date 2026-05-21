@@ -148,10 +148,7 @@
     width: 60vw;
     height: 18vw;
     transform: translateX(-50%);
-    background: radial-gradient(ellipse at center,
-      rgba(255,225,180,0.55) 0%,
-      rgba(255,210,160,0.28) 30%,
-      transparent 70%);
+    background: none;
     pointer-events: none;
     mix-blend-mode: screen;
     z-index: 5;
@@ -165,10 +162,7 @@
     height: 88vh;
     max-height: 820px;
     transform: translateX(-50%);
-    background: radial-gradient(ellipse at 50% 50%,
-      rgba(255,230,190,0.38) 0%,
-      rgba(255,220,180,0.18) 25%,
-      transparent 60%);
+    background: none;
     pointer-events: none;
     mix-blend-mode: screen;
     z-index: 6;
@@ -186,7 +180,7 @@
     z-index: 7;
     pointer-events: none;
     /* Tilt to track the LEFT rail receding to the VP. */
-    transform: rotate(-8deg);
+    transform: rotate(-22deg);
     transform-origin: 0% 100%;
     /* lighten = max(scene, train) per channel. The train body is near-black,
        so it disappears into the dark rail trench; only the warm lit windows
@@ -419,15 +413,7 @@
 
   /* Floor-mounted contact shadow for the screen */
   .display-rig::after {
-    content: "";
-    position: absolute;
-    left: 50%;
-    bottom: -6px;
-    transform: translateX(-50%);
-    width: 105%;
-    height: 18px;
-    background: radial-gradient(ellipse at center, rgba(0,0,0,0.55), transparent 70%);
-    pointer-events: none;
+    display: none;
   }
 
   /* ---------- Helper hint ---------- */
