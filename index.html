@@ -169,37 +169,33 @@
     filter: blur(6px);
   }
 
-  /* ---------- Train GIF passing on the LEFT rail ---------- */
-  .train-gif {
+  /* ---------- Train GIF (hidden — replaced by SVG anime train) ---------- */
+  .train-gif { display: none !important; }
+
+  /* ---------- Anime SVG train passing on the LEFT rail every 10s ---------- */
+  .train-anime-wrap {
     position: absolute;
-    /* Sits in the left rail trench, behind the screen halo and silhouette */
-    bottom: -2vh;
-    left: 2vw;
-    width: 62vw;
-    height: auto;
-    z-index: 7;
+    left: 0; top: 0;
     pointer-events: none;
-    /* Tilt to track the LEFT rail receding to the VP. */
-    transform: rotate(-22deg);
-    transform-origin: 0% 100%;
-    /* lighten = max(scene, train) per channel. The train body is near-black,
-       so it disappears into the dark rail trench; only the warm lit windows
-       and the bright headlight streaks survive — exactly the "light traces
-       of a passing train" feel we want. */
-    mix-blend-mode: lighten;
-    /* Wider feather on every edge so the rectangular GIF frame dissolves
-       gradually rather than ending in a soft-but-still-visible line. */
-    -webkit-mask-image:
-      linear-gradient(to right,  transparent 0%, #000 26%, #000 70%, transparent 100%),
-      linear-gradient(to bottom, transparent 0%, #000 38%, #000 78%, transparent 100%);
-    -webkit-mask-composite: source-in;
-            mask-image:
-      linear-gradient(to right,  transparent 0%, #000 26%, #000 70%, transparent 100%),
-      linear-gradient(to bottom, transparent 0%, #000 38%, #000 78%, transparent 100%);
-            mask-composite: intersect;
-    /* Dim + desaturate + faint blue shift to sit in the platform's cool
-       night palette; a hint of blur softens motion edges. */
-    filter: brightness(0.78) saturate(0.7) contrast(1.05) hue-rotate(-8deg) blur(0.6px);
+    z-index: 8;
+    overflow: hidden;
+    width: 100%; height: 100%;
+  }
+  .train-anime {
+    position: absolute;
+    left: 0; top: 0;
+    transform-origin: center center;
+    animation: train-pass 10s linear infinite;
+    will-change: transform, opacity, filter;
+  }
+  @keyframes train-pass {
+    0%     { transform: translate(40vw, 64vh) scale(0.15) rotate(-28deg); opacity: 0; }
+    4%     { transform: translate(40vw, 64vh) scale(0.15) rotate(-28deg); opacity: 0.85; }
+    10%    { transform: translate(18vw, 74vh) scale(0.55) rotate(-28deg); opacity: 1; }
+    13.5%  { transform: translate(-6vw,  82vh) scale(1.05) rotate(-28deg); opacity: 0.9; }
+    15%    { transform: translate(-50vw, 88vh) scale(1.2)  rotate(-28deg); opacity: 0; }
+    15.01% { transform: translate(40vw, 64vh) scale(0.15) rotate(-28deg); opacity: 0; }
+    100%   { transform: translate(40vw, 64vh) scale(0.15) rotate(-28deg); opacity: 0; }
   }
 
   /* ---------- Child's cast shadow on the platform floor ----------
@@ -454,6 +450,37 @@
     border: 1px solid rgba(255,255,255,0.07);
   }
 
+  /* ---------- Export / import ads ---------- */
+  .save-ctrl {
+    position: fixed;
+    bottom: 22px;
+    right: 28px;
+    z-index: 100;
+    display: flex;
+    gap: 6px;
+  }
+  .save-btn {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.10);
+    background: rgba(10,10,14,0.70);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: rgba(232,227,216,0.85);
+    font: 500 12px/1 'Inter', -apple-system, system-ui, sans-serif;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    transition: background 160ms ease, color 160ms ease;
+  }
+  .save-btn:hover { background: rgba(20,18,14,0.88); color: rgba(232,227,216,1); }
+  .save-btn input[type="file"] { display: none; }
+
   /* Project title — top corner */
   .stop-sign {
     position: fixed;
@@ -629,6 +656,7 @@
        into the scene. -->
   <img class="train-gif" src="uploads/trainpassingby.gif" alt="" aria-hidden="true">
 
+
   <!-- Cast shadow on the platform floor, projecting forward from the
        child's feet toward the viewer. Uses a TAPERED variant of the
        child's silhouette (wider toward the head, narrower toward the
@@ -742,7 +770,7 @@
   <div class="display-rig">
     <div class="display-frame">
       <div class="screen" id="screen">
-        <image-slot id="ad-1" class="ad-layer current" placeholder="Drop ad #1"></image-slot>
+        <image-slot id="ad-1" class="ad-layer current" src="uploads/water.gif" placeholder="Drop ad #1"></image-slot>
         <image-slot id="ad-2" class="ad-layer"         placeholder="Drop ad #2"></image-slot>
         <image-slot id="ad-3" class="ad-layer"         placeholder="Drop ad #3"></image-slot>
         <image-slot id="ad-4" class="ad-layer"         placeholder="Drop ad #4"></image-slot>
