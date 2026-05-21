@@ -84,7 +84,7 @@
         rgba(255,255,255,0.025) 0px,
         rgba(255,255,255,0.025) 1px,
         transparent 1px,
-        transparent 28px),
+        transparent 56px),
       /* dim concrete with atmospheric perspective */
       linear-gradient(180deg,
         #060809 0%,
@@ -595,6 +595,39 @@
     background:
       linear-gradient(180deg, #c8d4e0 0%, #b0c2d4 45%, #96aec4 100%);
   }
+
+  /* ---------- Ceiling lamp fixtures ---------- */
+  .ceiling-lamps {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+  }
+
+  /* ---------- Pigeon perched on left side of screen ---------- */
+  .pigeon-outer {
+    position: absolute;
+    left: -5%;
+    top: -10%;
+    z-index: 2;
+    pointer-events: none;
+    transform: scaleX(-1); /* faces outward (left) */
+  }
+  .pigeon-outer svg {
+    display: block;
+    height: 3.8vh;
+    width: auto;
+  }
+  .peck-group {
+    transform-origin: 50px 29px;
+    animation: pigeon-peck 4.5s ease-in-out infinite;
+  }
+  @keyframes pigeon-peck {
+    0%, 100%  { transform: rotate(0deg); }
+    18%       { transform: rotate(25deg) translate(3px, 2px); }
+    28%       { transform: rotate(0deg); }
+    44%       { transform: rotate(25deg) translate(3px, 2px); }
+    54%       { transform: rotate(0deg); }
+  }
 </style>
 </head>
 <body>
@@ -663,6 +696,30 @@
     <!-- Two long ceiling strips on either side of center -->
     <polygon points="49.3,75 49.6,75 35,0 30,0" fill="url(#light-strip)" opacity="0.55"/>
     <polygon points="50.4,75 50.7,75 70,0 65,0" fill="url(#light-strip)" opacity="0.55"/>
+  </svg>
+
+  <!-- Round ceiling lamp fixtures — cold blue-white, receding to VP -->
+  <svg class="ceiling-lamps" viewBox="0 0 100 100" preserveAspectRatio="none">
+    <defs>
+      <radialGradient id="lamp-glow" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0%"   stop-color="#c8e2ff" stop-opacity="0.9"/>
+        <stop offset="50%"  stop-color="#a4c8f4" stop-opacity="0.3"/>
+        <stop offset="100%" stop-color="#80aee8" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="lamp-body" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0%"   stop-color="#eef6ff" stop-opacity="1"/>
+        <stop offset="60%"  stop-color="#c0d8f8" stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="#90bce8" stop-opacity="0.5"/>
+      </radialGradient>
+    </defs>
+    <!-- 6 centered lamps — no glow, wide flat fixture, decreasing spacing toward VP -->
+    <ellipse cx="50" cy="7"  rx="3.6"  ry="2.4"  fill="url(#lamp-body)"/>
+    <ellipse cx="50" cy="17" rx="2.35" ry="1.58" fill="url(#lamp-body)"/>
+    <ellipse cx="50" cy="24" rx="1.96" ry="1.32" fill="url(#lamp-body)"/>
+    <ellipse cx="50" cy="30" rx="1.71" ry="1.15" fill="url(#lamp-body)"/>
+    <ellipse cx="50" cy="34" rx="1.2"  ry="0.8"  fill="url(#lamp-body)"/>
+    <ellipse cx="50" cy="42" rx="1.41" ry="0.95" fill="url(#lamp-body)"/>
+    <ellipse cx="50" cy="46" rx="1.25" ry="0.84" fill="url(#lamp-body)"/>
   </svg>
 
   <!-- Haze at vanishing point -->
@@ -746,6 +803,34 @@
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.5 6.36L3 16"/><path d="M3 12a9 9 0 0 1 15.5-6.36L21 8"/><polyline points="21 3 21 8 16 8"/><polyline points="3 21 3 16 8 16"/></svg>
       <span id="changeBtnLabel">Change image</span>
     </button>
+
+    <!-- Pigeon perched on the left side of the screen -->
+    <div class="pigeon-outer" aria-hidden="true">
+      <svg viewBox="0 0 80 60">
+        <path d="M8,28 L0,20 L2,36 Z" fill="#5a5c68"/>
+        <ellipse cx="30" cy="30" rx="22" ry="13" fill="#8a8c9a"/>
+        <ellipse cx="26" cy="31" rx="17" ry="8.5" fill="#70727e"/>
+        <path d="M13,34 Q27,27 43,33" stroke="#9a9ca8" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <path d="M14,37 Q27,31 42,36" stroke="#9a9ca8" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.6"/>
+        <ellipse cx="44" cy="23" rx="9" ry="7" fill="#4a7868" opacity="0.5"/>
+        <g class="peck-group">
+          <circle cx="52" cy="20" r="10" fill="#96989e"/>
+          <path d="M61,18.5 L70,20 L61,21.5 Z" fill="#a89040"/>
+          <circle cx="57" cy="18" r="2.2" fill="#181820"/>
+          <circle cx="57.5" cy="17.5" r="0.8" fill="rgba(255,255,255,0.88)"/>
+        </g>
+        <line x1="26" y1="42" x2="22" y2="53" stroke="#a89040" stroke-width="1.6"/>
+        <line x1="34" y1="42" x2="38" y2="53" stroke="#a89040" stroke-width="1.6"/>
+        <g stroke="#a89040" stroke-width="1.3" stroke-linecap="round">
+          <line x1="22" y1="53" x2="15" y2="56"/>
+          <line x1="22" y1="53" x2="22" y2="57"/>
+          <line x1="22" y1="53" x2="27" y2="56"/>
+          <line x1="38" y1="53" x2="31" y2="56"/>
+          <line x1="38" y1="53" x2="38" y2="57"/>
+          <line x1="38" y1="53" x2="43" y2="56"/>
+        </g>
+      </svg>
+    </div>
   </div>
 
   <!-- Chrome -->
