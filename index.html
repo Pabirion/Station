@@ -64,14 +64,14 @@
     background:
       /* far-end darkening */
       linear-gradient(180deg, #030303 0%, #060505 35%, #0d0a08 100%);
-    clip-path: polygon(42% 75%, 8% 100%, 0 100%, 0 100%, 40% 75%);
+    clip-path: polygon(42% 75%, 4% 100%, 0 100%, 0 100%, 40% 75%);
   }
 
   /* ---------- Rail trench, RIGHT ---------- */
   .rail-right {
     background:
       linear-gradient(180deg, #030303 0%, #060505 35%, #0d0a08 100%);
-    clip-path: polygon(60% 75%, 100% 100%, 92% 100%, 58% 75%);
+    clip-path: polygon(60% 75%, 100% 100%, 96% 100%, 58% 75%);
   }
 
   /* ---------- Platform floor ----------
@@ -87,12 +87,12 @@
         transparent 28px),
       /* dim concrete with atmospheric perspective */
       linear-gradient(180deg,
-        #0d1116 0%,
-        #161b22 25%,
-        #232a33 55%,
-        #2e3640 85%,
-        #353d47 100%);
-    clip-path: polygon(42% 75%, 58% 75%, 92% 100%, 8% 100%);
+        #060809 0%,
+        #0a0e12 25%,
+        #111620 55%,
+        #181f2a 85%,
+        #1c2330 100%);
+    clip-path: polygon(42% 75%, 58% 75%, 96% 100%, 4% 100%);
   }
 
   /* Platform — yellow safety stripes along the edges (one per side).
@@ -109,8 +109,8 @@
     opacity: 0.5;
     filter: brightness(0.85);
   }
-  .safety-left  { clip-path: polygon(41.4% 75%, 42% 75%, 8% 100%, 5.5% 100%); }
-  .safety-right { clip-path: polygon(58% 75%, 58.6% 75%, 94.5% 100%, 92% 100%); }
+  .safety-left  { clip-path: polygon(41.4% 75%, 42% 75%, 4% 100%, 1.5% 100%); }
+  .safety-right { clip-path: polygon(58% 75%, 58.6% 75%, 98.5% 100%, 96% 100%); }
 
   /* ---------- Rail tracks SVG (4 metal lines + sleepers) ---------- */
   .tracks {
@@ -413,6 +413,15 @@
     display: none;
   }
 
+  .display-foot {
+    width: 52%;
+    height: 16px;
+    margin: 0 auto;
+    background: linear-gradient(180deg, #1e2738, #131a28);
+    clip-path: polygon(12% 0%, 88% 0%, 100% 100%, 0% 100%);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  }
+
   /* ---------- Helper hint ---------- */
   .hint {
     position: fixed;
@@ -603,10 +612,19 @@
   <!-- Sleepers + metal tracks, drawn in SVG so we control perspective precisely -->
   <svg class="tracks" viewBox="0 0 100 100" preserveAspectRatio="none">
     <defs>
+      <!-- Rail body: dark at VP fading in, dark blue-steel near viewer -->
       <linearGradient id="rail-metal" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#3a3a40" stop-opacity="0"/>
-        <stop offset="35%" stop-color="#6a6a72" stop-opacity="0.6"/>
-        <stop offset="100%" stop-color="#aeaeb6" stop-opacity="0.95"/>
+        <stop offset="0%"   stop-color="#1a2030" stop-opacity="0"/>
+        <stop offset="22%"  stop-color="#242e42" stop-opacity="0.6"/>
+        <stop offset="60%"  stop-color="#2e3c56" stop-opacity="0.9"/>
+        <stop offset="82%"  stop-color="#3a4c68" stop-opacity="0.97"/>
+        <stop offset="100%" stop-color="#32435c" stop-opacity="0.95"/>
+      </linearGradient>
+      <!-- Rail shine: subtle highlight so the rail reads as metal, not flat -->
+      <linearGradient id="rail-shine" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#4a6080" stop-opacity="0"/>
+        <stop offset="45%"  stop-color="#5a7090" stop-opacity="0.45"/>
+        <stop offset="100%" stop-color="#6a8098" stop-opacity="0.65"/>
       </linearGradient>
       <linearGradient id="sleeper" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" stop-color="#1a120a"/>
@@ -619,15 +637,19 @@
     <!-- RIGHT rail bed sleepers -->
     <g id="sleepers-right"></g>
 
-    <!-- LEFT rail: outer track (further from platform) -->
-    <polygon points="40.3,75 40.7,75 2.6,100 1,100" fill="url(#rail-metal)"/>
-    <!-- LEFT rail: inner track (closer to platform) -->
-    <polygon points="41.5,75 41.9,75 7.4,100 5.8,100" fill="url(#rail-metal)"/>
+    <!-- LEFT rail: outer track -->
+    <polygon points="40.0,75 40.9,75 1.8,100 0,100"   fill="url(#rail-metal)"/>
+    <polygon points="40.1,75 40.7,75 2.0,100 0.5,100" fill="url(#rail-shine)"/>
+    <!-- LEFT rail: inner track -->
+    <polygon points="41.1,75 42.0,75 3.6,100 1.8,100" fill="url(#rail-metal)"/>
+    <polygon points="41.2,75 41.8,75 3.8,100 2.3,100" fill="url(#rail-shine)"/>
 
     <!-- RIGHT rail: inner track -->
-    <polygon points="58.1,75 58.5,75 94.2,100 92.6,100" fill="url(#rail-metal)"/>
+    <polygon points="58.0,75 58.9,75 98.2,100 96.4,100" fill="url(#rail-metal)"/>
+    <polygon points="58.2,75 58.8,75 97.7,100 96.2,100" fill="url(#rail-shine)"/>
     <!-- RIGHT rail: outer track -->
-    <polygon points="59.3,75 59.7,75 99,100 97.4,100" fill="url(#rail-metal)"/>
+    <polygon points="59.1,75 60.0,75 100,100 98.2,100"  fill="url(#rail-metal)"/>
+    <polygon points="59.3,75 59.9,75 99.5,100 98.5,100" fill="url(#rail-shine)"/>
   </svg>
 
   <!-- Ceiling lights — long thin warm-white strips converging to VP -->
@@ -663,45 +685,19 @@
        feet) so once flipped + stretched it reads like a cast shadow
        on the ground with the tip slightly broader than the base. -->
   <svg class="child-shadow" viewBox="0 -22 200 600" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
-    <!-- Body: tapered, younger proportions — bigger head, shorter torso. -->
-    <path d="
-      M 100 -8
-      C 158 -8, 190 28, 190 76
-      C 190 110, 168 136, 140 144
-      L 140 160
-      C 174 168, 198 196, 198 234
-      L 194 312
-      L 182 338
-      L 173 448
-      L 162 552
-      L 124 552
-      L 115 402
-      L 100 391
-      L 85 402
-      L 76 552
-      L 38 552
-      L 27 448
-      L 18 338
-      L 6 312
-      L 2 234
-      C 2 196, 26 168, 60 160
-      L 60 144
-      C 32 136, 10 110, 10 76
-      C 10 28, 42 -8, 100 -8 Z"/>
-    <!-- Hair: wider to match the bigger head. -->
-    <path d="
-      M 16 30
-      C 14 4, 28 -12, 46 -16
-      C 54 -18, 62 -6, 67 2
-      C 72 -22, 86 -32, 100 -28
-      C 112 -30, 122 -16, 127 -6
-      C 134 -20, 152 -8, 166 8
-      C 172 20, 175 30, 184 36
-      C 164 24, 144 20, 126 22
-      C 114 24, 106 22, 98 22
-      C 78 20, 44 24, 16 30 Z"/>
-    <path d="M 44 542 L 90 542 C 97 550, 99 562, 95 570 C 88 574, 46 574, 40 570 C 36 562, 38 550, 44 542 Z"/>
-    <path d="M 110 542 L 156 542 C 160 550, 162 562, 158 570 C 152 574, 112 574, 106 570 C 102 562, 104 550, 110 542 Z"/>
+    <path d="M 100 -8 C 158 -8,190 28,190 76 C 190 110,168 136,140 144
+      L 140 160 C 174 168,198 196,198 234 L 194 312 L 182 338
+      L 173 448 L 162 552 L 124 552 L 115 402 L 100 391 L 85 402
+      L 76 552 L 38 552 L 27 448 L 18 338 L 6 312 L 2 234
+      C 2 196,26 168,60 160 L 60 144 C 32 136,10 110,10 76
+      C 10 28,42 -8,100 -8 Z"/>
+    <path d="M 16 30 C 14 4,28 -12,46 -16 C 54 -18,62 -6,67 2
+      C 72 -22,86 -32,100 -28 C 112 -30,122 -16,127 -6
+      C 134 -20,152 -8,166 8 C 172 20,175 30,184 36
+      C 164 24,144 20,126 22 C 114 24,106 22,98 22
+      C 78 20,44 24,16 30 Z"/>
+    <path d="M 44 542 L 90 542 C 97 550,99 562,95 570 C 88 574,46 574,40 570 C 36 562,38 550,44 542 Z"/>
+    <path d="M 110 542 L 156 542 C 160 550,162 562,158 570 C 152 574,112 574,106 570 C 102 562,104 550,110 542 Z"/>
   </svg>
 
 
@@ -709,72 +705,43 @@
        Single solid path so it reads cleanly against the bright screen. -->
   <svg class="child" viewBox="0 -22 200 600" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
     <defs>
-      <!-- Tiny rim of warm light along the silhouette's edge facing the screen -->
       <radialGradient id="child-rim" cx="50%" cy="35%" r="60%">
         <stop offset="0%"  stop-color="#1a120a" stop-opacity="0"/>
         <stop offset="85%" stop-color="#3a2410" stop-opacity="0"/>
         <stop offset="100%" stop-color="#d4a738" stop-opacity="0.18"/>
       </radialGradient>
     </defs>
-    <!-- Body -->
-    <path d="
-      M 100 -8
-      C 140 -8, 168 22, 168 62
-      C 168 96, 152 118, 130 128
-      L 130 142
-      C 162 150, 182 176, 182 212
-      L 180 298
-      L 170 322
-      L 162 446
-      L 152 552
-      L 118 552
-      L 110 402
-      L 100 393
-      L 90 402
-      L 82 552
-      L 48 552
-      L 38 446
-      L 30 322
-      L 18 298
-      L 18 212
-      C 18 176, 38 150, 70 142
-      L 70 128
-      C 48 118, 32 96, 32 62
-      C 32 22, 60 -8, 100 -8
-      Z"
-      fill="#000000"/>
-
-    <!-- Hair -->
-    <path d="
-      M 34 26
-      C 32 2, 44 -14, 60 -18
-      C 67 -20, 74 -10, 78 -4
-      C 82 -26, 94 -34, 106 -30
-      C 116 -32, 124 -20, 128 -10
-      C 134 -22, 148 -12, 160 4
-      C 165 14, 167 22, 166 26
-      C 152 16, 136 12, 120 14
-      C 110 16, 103 14, 97 14
-      C 81 12, 55 16, 34 26
-      Z"
-      fill="#000000"/>
-
-    <!-- Shoes -->
-    <path d="M 44 542 L 90 542 C 97 550, 99 562, 95 570 C 88 574, 46 574, 40 570 C 36 562, 38 550, 44 542 Z" fill="#000000"/>
-    <path d="M 110 542 L 156 542 C 160 550, 162 562, 158 570 C 152 574, 112 574, 106 570 C 102 562, 104 550, 110 542 Z" fill="#000000"/>
+    <path d="M 100 -8 C 140 -8,168 22,168 62 C 168 96,152 118,130 128
+      L 130 142 C 162 150,182 176,182 212 L 180 298 L 170 322
+      L 162 446 L 152 552 L 118 552 L 110 402 L 100 393 L 90 402
+      L 82 552 L 48 552 L 38 446 L 30 322 L 18 298 L 18 212
+      C 18 176,38 150,70 142 L 70 128 C 48 118,32 96,32 62
+      C 32 22,60 -8,100 -8 Z" fill="#000000"/>
+    <path d="M 34 26 C 32 2,44 -14,60 -18 C 67 -20,74 -10,78 -4
+      C 82 -26,94 -34,106 -30 C 116 -32,124 -20,128 -10
+      C 134 -22,148 -12,160 4 C 165 14,167 22,166 26
+      C 152 16,136 12,120 14 C 110 16,103 14,97 14
+      C 81 12,55 16,34 26 Z" fill="#000000"/>
+    <!-- Crown curl — big visible loop -->
+    <path d="M 92 -28 C 86 -42,80 -62,88 -76 C 94 -88,114 -88,118 -74
+      C 122 -60,116 -44,108 -36 C 112 -46,114 -62,110 -72
+      C 106 -80,96 -80,92 -72 C 88 -62,90 -46,96 -34 Z" fill="#000000"/>
+    <path d="M 44 542 L 90 542 C 97 550,99 562,95 570 C 88 574,46 574,40 570 C 36 562,38 550,44 542 Z" fill="#000000"/>
+    <path d="M 110 542 L 156 542 C 160 550,162 562,158 570 C 152 574,112 574,106 570 C 102 562,104 550,110 542 Z" fill="#000000"/>
   </svg>
 
   <!-- The commercial display in the middle of the platform -->
   <div class="display-rig">
     <div class="display-frame">
       <div class="screen" id="screen">
-        <image-slot id="ad-1" class="ad-layer current" src="uploads/Raindrops.gif" placeholder="Drop ad #1"></image-slot>
+        <image-slot id="ad-1" class="ad-layer current" src="uploads/water.gif" placeholder="Drop ad #1"></image-slot>
         <image-slot id="ad-2" class="ad-layer"         src="uploads/moths.gif" placeholder="Drop ad #2"></image-slot>
-        <image-slot id="ad-3" class="ad-layer"         src="uploads/Tokyo.gif" placeholder="Drop ad #3"></image-slot>
+        <image-slot id="ad-3" class="ad-layer"         src="uploads/Raindrops.gif" placeholder="Drop ad #3"></image-slot>
         <image-slot id="ad-4" class="ad-layer"         src="uploads/noConnection.gif" placeholder="Drop ad #4"></image-slot>
       </div>
       <div class="brand-strip">METRO ADS · CH 010</div>
     </div>
+    <div class="display-foot"></div>
     <button class="change-btn" id="changeBtn" type="button" aria-label="Change image on this ad">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.5 6.36L3 16"/><path d="M3 12a9 9 0 0 1 15.5-6.36L21 8"/><polyline points="21 3 21 8 16 8"/><polyline points="3 21 3 16 8 16"/></svg>
       <span id="changeBtnLabel">Change image</span>
@@ -827,7 +794,7 @@
       // VP: x in [40, 42]; bottom: x in [0, 8]
       const f = (y - VP_Y) / (100 - VP_Y); // 0 at VP, 1 at bottom
       const lx1 = 40 + (0    - 40) * f;
-      const lx2 = 42 + (8    - 42) * f;
+      const lx2 = 42 + (4    - 42) * f;
       const lx1b = 40 + (0    - 40) * (f + ySpan/(100-VP_Y));
       const lx2b = 42 + (8    - 42) * (f + ySpan/(100-VP_Y));
       const lp = `${lx1},${y} ${lx2},${y} ${lx2b},${y+ySpan} ${lx1b},${y+ySpan}`;
@@ -839,7 +806,7 @@
 
       // RIGHT rail boundary x-coords at this y
       // VP: x in [58, 60]; bottom: x in [92, 100]
-      const rx1 = 58 + (92   - 58) * f;
+      const rx1 = 58 + (96   - 58) * f;
       const rx2 = 60 + (100  - 60) * f;
       const rx1b = 58 + (92   - 58) * (f + ySpan/(100-VP_Y));
       const rx2b = 60 + (100  - 60) * (f + ySpan/(100-VP_Y));

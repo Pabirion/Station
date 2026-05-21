@@ -51,11 +51,10 @@
   // 2× a ~600px slot in a 1920-wide deck — retina-sharp without making the
   // sidecar enormous. A 1200px WebP at q=0.85 is ~150-300KB.
   const MAX_DIM = 1200;
-  // Raster formats only. SVG is excluded (can carry script; createImageBitmap
-  // on SVG blobs is inconsistent). GIF is excluded because the canvas
-  // re-encode keeps only the first frame, so an animated GIF would silently
-  // go still — better to reject than surprise.
-  const ACCEPT = ['image/png', 'image/jpeg', 'image/webp', 'image/avif'];
+  // Raster formats. GIF is read via FileReader (not canvas) so animation survives.
+  const ACCEPT = ['image/png', 'image/jpeg', 'image/webp', 'image/avif', 'image/gif'];
+  // Video formats — displayed in a <video> element; stored as blob URL (session only).
+  const ACCEPT_VIDEO = ['video/mp4', 'video/webm', 'video/ogg'];
 
   // ── Shared sidecar store ────────────────────────────────────────────────
   // One fetch + immediate write-on-change for every <image-slot> on the
@@ -214,7 +213,8 @@
     '  backdrop-filter:blur(6px)}' +
     '.ctl button:hover{background:rgba(0,0,0,.8)}' +
     '.err{position:absolute;left:8px;bottom:8px;right:8px;color:#b3261e;font-size:11px;' +
-    '  background:rgba(255,255,255,.85);padding:4px 6px;border-radius:5px;pointer-events:none}';
+    '  background:rgba(255,255,255,.85);padding:4px 6px;border-radius:5px;pointer-events:none}' +
+    '.vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}';
 
   const icon =
     '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
@@ -236,6 +236,7 @@
         '<style>' + stylesheet + '</style>' +
         '<div class="frame" part="frame">' +
         '  <img part="image" alt="" draggable="false" style="display:none">' +
+        '  <video class="vid" part="video" autoplay loop muted playsinline></video>' +
         '  <div class="empty" part="empty">' + icon +
         '    <div class="cap"></div>' +
         '    <div class="sub">or <u>browse files</u></div></div>' +
@@ -248,10 +249,11 @@
         '</div>' +
         '<div class="ctl"><button data-act="replace" title="Replace image">Replace</button>' +
         '  <button data-act="clear" title="Remove image">Remove</button></div>' +
-        '<input type="file" accept="' + ACCEPT.join(',') + '" hidden>';
+        '<input type="file" accept="' + ACCEPT.concat(ACCEPT_VIDEO).join(',') + '" hidden>';
       this._frame = root.querySelector('.frame');
       this._ring = root.querySelector('.ring');
       this._img = root.querySelector('.frame img');
+      this._vid = root.querySelector('.vid');
       this._empty = root.querySelector('.empty');
       this._cap = root.querySelector('.cap');
       this._sub = root.querySelector('.sub');
@@ -273,6 +275,7 @@
           this._exitReframe(false);
           this._gen++;
           this._local = null;
+          if (this._videoBlobUrl) { URL.revokeObjectURL(this._videoBlobUrl); this._videoBlobUrl = null; }
           if (this.id) setSlot(this.id, null); else this._render();
         }
       });
@@ -466,29 +469,45 @@
 
     async _ingest(file) {
       this._setError(null);
-      if (!file || ACCEPT.indexOf(file.type) < 0) {
-        this._setError('Drop a PNG, JPEG, WebP, or AVIF image.');
+      const isGif   = file && file.type === 'image/gif';
+      const isVideo = file && ACCEPT_VIDEO.indexOf(file.type) >= 0;
+      if (!file || (!isGif && !isVideo && ACCEPT.indexOf(file.type) < 0)) {
+        this._setError('Drop a PNG, JPEG, WebP, AVIF, GIF, or video (MP4/WebM).');
         return;
       }
-      // toDataUrl can take hundreds of ms on a large photo. A Clear or a
-      // newer drop during that window would be clobbered when this await
-      // resumes — bump + capture a generation so stale encodes bail.
       const gen = ++this._gen;
       try {
-        const w = this.clientWidth || this.offsetWidth || MAX_DIM;
-        const url = await toDataUrl(file, w);
+        if (isVideo) {
+          // Blob URL — fast, no encode. Session-only (lost on reload).
+          if (this._videoBlobUrl) URL.revokeObjectURL(this._videoBlobUrl);
+          this._videoBlobUrl = URL.createObjectURL(file);
+          if (gen !== this._gen) return;
+          this._exitReframe(false);
+          this._render();
+          return;
+        }
+        let url;
+        if (isGif) {
+          // FileReader preserves animation — skip canvas re-encode.
+          url = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(new Error('FileReader failed'));
+            reader.readAsDataURL(file);
+          });
+        } else {
+          const w = this.clientWidth || this.offsetWidth || MAX_DIM;
+          url = await toDataUrl(file, w);
+        }
         if (gen !== this._gen) return;
-        // Only exit reframe once the new image is in hand — a rejected type
-        // or decode failure leaves the in-progress crop untouched.
         this._exitReframe(false);
+        if (this._videoBlobUrl) { URL.revokeObjectURL(this._videoBlobUrl); this._videoBlobUrl = null; }
         const val = { u: url, s: 1, x: 0, y: 0 };
         setSlot(this.id || '', val);
-        // Keep a session-local copy for id-less slots so the drop still
-        // shows, even though it cannot persist.
         if (!this.id) { this._local = val; this._render(); }
       } catch (err) {
         if (gen !== this._gen) return;
-        this._setError('Could not read that image.');
+        this._setError('Could not read that file.');
         console.warn('<image-slot> ingest failed:', err);
       }
     }
@@ -613,8 +632,22 @@
         };
       }
       this._cap.textContent = this.getAttribute('placeholder') || 'Drop an image';
+
+      // Video (session blob URL) takes priority over stored image.
+      if (this._videoBlobUrl) {
+        if (this._vid.getAttribute('src') !== this._videoBlobUrl) {
+          this._vid.src = this._videoBlobUrl;
+        }
+        this._vid.style.display = 'block';
+        this._img.style.display = 'none';
+        this._empty.style.display = 'none';
+        this.setAttribute('data-filled', '');
+        return;
+      }
+
       // Toggle via style.display — the [hidden] attribute alone loses to
       // the display:flex / display:block rules in the stylesheet above.
+      this._vid.style.display = 'none';
       if (url) {
         if (this._img.getAttribute('src') !== url) {
           this._img.src = url;
@@ -638,4 +671,38 @@
   if (!customElements.get('image-slot')) {
     customElements.define('image-slot', ImageSlot);
   }
+
+  // ── Export / import ─────────────────────────────────────────────────────
+  window.imageSlotExport = function () {
+    load().then(() => {
+      const blob = new Blob([JSON.stringify(slots, null, 2)], { type: 'application/json' });
+      const url  = URL.createObjectURL(blob);
+      const a    = Object.assign(document.createElement('a'), { href: url, download: 'ads.json' });
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  };
+
+  window.imageSlotImport = function (file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (data && typeof data === 'object') {
+          // Merge imported data; only accept data: image URLs for security.
+          for (const [k, v] of Object.entries(data)) {
+            const u = typeof v === 'string' ? v : v && v.u;
+            if (u && /^data:image\//i.test(u)) slots[k] = v;
+          }
+          loaded = true;
+          subs.forEach((fn) => fn());
+          save();
+        }
+      } catch (err) {
+        console.warn('<image-slot> import failed:', err);
+      }
+    };
+    reader.readAsText(file);
+  };
 })();
