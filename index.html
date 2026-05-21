@@ -173,8 +173,8 @@
   .train-gif {
     position: absolute;
     /* Sits in the left rail trench, behind the screen halo and silhouette */
-    bottom: 12vh;
-    left: -8vw;
+    bottom: -2vh;
+    left: 2vw;
     width: 62vw;
     height: auto;
     z-index: 7;
@@ -355,6 +355,7 @@
     display: block !important;
     transform: translateY(-100%);
     transition: transform 850ms cubic-bezier(.7, .02, .2, 1);
+    pointer-events: none;
   }
   .ad-layer.current { transform: translateY(0); }
   .ad-layer.exit    { transform: translateY(100%); }
@@ -689,9 +690,7 @@
         <stop offset="100%" stop-color="#d4a738" stop-opacity="0.18"/>
       </radialGradient>
     </defs>
-    <!-- Body: head + (slightly thinner) neck + shoulders + torso + legs.
-         All sub-shapes are filled black and overlap so they read as one
-         continuous silhouette. -->
+    <!-- Body -->
     <path d="
       M 100 4
       C 134 4, 156 32, 156 70
@@ -719,8 +718,7 @@
       Z"
       fill="#000000"/>
 
-    <!-- Hair: natural boy's haircut. Soft curved bumps suggest
-         hair volume without sharp spikes. -->
+    <!-- Hair -->
     <path d="
       M 46 30
       C 44 6, 52 -8, 64 -10
@@ -735,25 +733,9 @@
       Z"
       fill="#000000"/>
 
-    <!-- Shoes: chunky sneaker silhouettes extending below each leg.
-         Slightly wider than the leg + rounded toe so they read as shoes
-         and not as continuations of the leg. -->
-    <path d="
-      M 46 542
-      L 88 542
-      C 94 550, 96 562, 92 570
-      C 86 574, 50 574, 44 570
-      C 40 562, 42 550, 46 542
-      Z"
-      fill="#000000"/>
-    <path d="
-      M 112 542
-      L 154 542
-      C 158 550, 160 562, 156 570
-      C 150 574, 114 574, 108 570
-      C 104 562, 106 550, 112 542
-      Z"
-      fill="#000000"/>
+    <!-- Shoes -->
+    <path d="M 46 542 L 88 542 C 94 550, 96 562, 92 570 C 86 574, 50 574, 44 570 C 40 562, 42 550, 46 542 Z" fill="#000000"/>
+    <path d="M 112 542 L 154 542 C 158 550, 160 562, 156 570 C 150 574, 114 574, 108 570 C 104 562, 106 550, 112 542 Z" fill="#000000"/>
   </svg>
 
   <!-- The commercial display in the middle of the platform -->
