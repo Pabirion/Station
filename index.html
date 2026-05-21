@@ -313,17 +313,17 @@
     position: relative;
     width: 100%;
     aspect-ratio: 9 / 16;
-    background: linear-gradient(180deg, #0c0c10 0%, #0a0a0e 100%);
+    background: linear-gradient(180deg, #3a3d42 0%, #2e3035 100%);
     border-radius: 14px;
     padding: 14px 14px 22px 14px;
-    /* Brighter warm halo — the screen is clearly glowing. */
+    /* Blue-gray glow tight around the frame. */
     box-shadow:
-      0 0 0 1.5px #1c1c22,
-      0 2px 0 #050507 inset,
-      0 -1px 0 #1f1f25 inset,
-      0 0 80px 14px rgba(255,210,160,0.55),
-      0 30px 100px -10px rgba(255,190,130,0.60),
-      0 0 160px 20px rgba(255,180,120,0.30);
+      0 0 0 1.5px #2a2d32,
+      0 2px 0 #1a1c1f inset,
+      0 -1px 0 #3a3d42 inset,
+      0 0 28px 6px rgba(130,170,220,0.50),
+      0 8px 36px 0px rgba(110,155,210,0.40),
+      0 0 55px 8px rgba(100,145,200,0.22);
     pointer-events: auto;
   }
 
@@ -345,13 +345,13 @@
     width: 100%;
     height: calc(100% - 24px);
     background:
-      radial-gradient(ellipse 80% 60% at 50% 35%, rgba(255,230,180,0.45), transparent 70%),
-      linear-gradient(180deg, #ead7b0 0%, #e2b574 45%, #b97b3a 100%);
+      radial-gradient(ellipse 80% 60% at 50% 35%, rgba(200,220,240,0.35), transparent 70%),
+      linear-gradient(180deg, #c8d4e0 0%, #b0c2d4 45%, #96aec4 100%);
     border-radius: 6px;
     overflow: hidden;
     box-shadow:
-      0 0 0 1px #2a2a30 inset,
-      0 0 40px rgba(255,210,150,0.45) inset;
+      0 0 0 1px #1a2030 inset,
+      0 0 40px rgba(160,200,240,0.35) inset;
     cursor: grab;
     touch-action: none;
     user-select: none;
@@ -398,14 +398,30 @@
     mix-blend-mode: overlay;
     z-index: 3;
   }
-  /* Outer glass reflection */
+  /* Outer glass reflection — diagonal streaks like light catching a screen */
   .screen::before {
     content: "";
     position: absolute;
     inset: 0;
     background:
-      linear-gradient(115deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 35%, rgba(255,255,255,0) 65%, rgba(255,255,255,0.04) 100%);
+      linear-gradient(
+        118deg,
+        transparent 0%,
+        transparent 19%,
+        rgba(255,255,255,0.18) 19%,
+        rgba(255,255,255,0.18) 25%,
+        transparent 25%,
+        transparent 29%,
+        rgba(255,255,255,0.10) 29%,
+        rgba(255,255,255,0.10) 32%,
+        transparent 32%,
+        transparent 54%,
+        rgba(255,255,255,0.12) 54%,
+        rgba(255,255,255,0.12) 58%,
+        transparent 58%
+      );
     pointer-events: none;
+    mix-blend-mode: screen;
     z-index: 4;
   }
 
@@ -672,12 +688,15 @@
       L 74 126
       C 50 118, 25 96, 25 70
       C 25 32, 50 4, 100 4 Z"/>
-    <!-- Hair: widened to match the wider head. -->
+    <!-- Hair: widened to match the wider head, natural curves. -->
     <path d="
       M 28 32
-      C 28 14, 34 2, 42 0
-      L 50 -14 L 62 4 L 76 -18 L 90 -2 L 102 -24 L 112 -2 L 124 -18 L 138 2 L 150 -12 L 158 4
-      C 166 6, 172 18, 172 32
+      C 26 8, 36 -6, 50 -10
+      C 56 -12, 64 -2, 68 4
+      C 72 -18, 84 -26, 96 -22
+      C 106 -24, 116 -12, 122 -2
+      C 130 -14, 144 -4, 156 8
+      C 162 18, 168 26, 172 32
       C 158 22, 140 18, 122 20
       C 108 22, 100 20, 92 20
       C 74 18, 46 22, 28 32 Z"/>
@@ -727,25 +746,16 @@
       Z"
       fill="#000000"/>
 
-    <!-- Hair: spiky boy's haircut. Sharp triangular peaks across the
-         crown, contained within the skull silhouette (head spans x=44
-         to x=156 at its widest) so the hair never sticks out past the
-         head outline. Bottom rim curves with the crown for a seamless
-         join. -->
+    <!-- Hair: natural boy's haircut. Soft curved bumps suggest
+         hair volume without sharp spikes. -->
     <path d="
       M 46 30
-      C 46 14, 50 4, 56 2
-      L 64 -10
-      L 72 6
-      L 84 -16
-      L 94 0
-      L 102 -22
-      L 110 0
-      L 122 -14
-      L 130 4
-      L 140 -8
-      L 148 6
-      C 152 8, 154 18, 154 30
+      C 44 6, 52 -8, 64 -10
+      C 70 -12, 76 -4, 80 2
+      C 82 -20, 92 -26, 102 -22
+      C 110 -24, 118 -14, 124 -4
+      C 130 -14, 140 -6, 148 6
+      C 152 14, 154 22, 154 30
       C 144 22, 130 18, 116 20
       C 106 22, 100 20, 94 20
       C 80 18, 60 20, 46 30
