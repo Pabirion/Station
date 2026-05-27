@@ -9,9 +9,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; }
-  html, body {
-    margin: 0; padding: 0;
-    width: 100%; height: 100%;
+
+  /* Squarespace wrapper — contains the entire scene */
+  #station-wrap {
+    position: relative;
+    width: 100%;
+    height: 100vh;
     overflow: hidden;
     background: #050609;
     font-family: 'Inter', -apple-system, system-ui, sans-serif;
@@ -19,9 +22,15 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  @media (max-width: 600px) {
+    #station-wrap {
+      height: 177.78vw; /* portrait 9:16 */
+    }
+  }
+
   /* ---------- Stage ---------- */
   .scene {
-    position: fixed;
+    position: absolute;
     inset: 0;
     overflow: hidden;
     /* Subtle vignette across whole scene */
@@ -263,17 +272,6 @@
   }
 
   @media (max-width: 600px) {
-    html, body {
-      height: 56.25vw;
-      overflow: hidden;
-    }
-    .scene {
-      position: absolute;
-      height: 56.25vw;
-      inset: auto;
-      width: 100%;
-      top: 0; left: 0;
-    }
     .train-gif { display: none !important; }
     .display-rig {
       width: 72vw;
@@ -435,7 +433,7 @@
 
   /* ---------- Helper hint ---------- */
   .hint {
-    position: fixed;
+    position: absolute;
     bottom: 22px;
     left: 50%;
     transform: translateX(-50%);
@@ -472,7 +470,7 @@
 
   /* ---------- Export / import ads ---------- */
   .save-ctrl {
-    position: fixed;
+    position: absolute;
     bottom: 22px;
     right: 28px;
     z-index: 100;
@@ -503,7 +501,7 @@
 
   /* Project title — top corner */
   .stop-sign {
-    position: fixed;
+    position: absolute;
     top: 22px;
     left: 28px;
     z-index: 100;
@@ -534,7 +532,7 @@
 
   /* Departure indicator — top right (just chrome flavor) */
   .timetable {
-    position: fixed;
+    position: absolute;
     top: 22px;
     right: 28px;
     z-index: 100;
@@ -643,6 +641,7 @@
 </head>
 <body>
 
+<div id="station-wrap">
 <div class="scene" style="color: rgb(219, 209, 195)">
 
   <!-- Layered backdrop -->
@@ -866,6 +865,8 @@
   </div>
 
 </div>
+
+</div><!-- /#station-wrap -->
 
 <script src="image-slot.js"></script>
 
