@@ -358,12 +358,11 @@
     width: 100% !important;
     height: 100% !important;
     display: block !important;
-    transform: translateY(-100%);
-    transition: transform 600ms cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateY(100%);
+    transition: transform 500ms cubic-bezier(0.4, 0, 0.2, 1);
     pointer-events: none;
+    z-index: 1;
   }
-  .ad-layer.current { transform: translateY(0); }
-  .ad-layer.exit    { transform: translateY(100%); }
 
   /* tiny corner brand */
   .brand-strip {
@@ -895,68 +894,77 @@
     }
   })();
 
-  /* -------- Ad rotator: auto every 8s + manual swipe-up drag --------
-     Both auto and manual paths drive the layers via inline transforms so
-     they share one source of truth. Direction: "current" goes up & out,
-     "next" rises from below — matching the swipe-up gesture. */
+  /* -------- Ad rotator: incoming layer slides over outgoing (gap-free) --------
+     Only the INCOMING layer animates. The current layer stays put beneath,
+     so the screen is always fully covered during transitions. */
   (function adRotator() {
     const screen = document.getElementById('screen');
     const layers = Array.from(document.querySelectorAll('.ad-layer'));
     if (!screen || layers.length < 2) return;
 
-    const T          = 850;    // must match .ad-layer CSS transition
-    const AUTO_MS    = 8000;   // dwell between auto-advances
-    const RESUME_MS  = 4000;   // wait after user interaction before resuming auto
-    const COMMIT_PCT = 18;     // must drag this far (% of screen height) to flip
-    const FLICK_VEL  = 0.6;    // px/ms — fast upward flick also commits
+    const DURATION   = 500;
+    const AUTO_MS    = 8000;
+    const RESUME_MS  = 4000;
+    const COMMIT_PCT = 18;
+    const FLICK_VEL  = 0.6;
 
     let currentIdx = 0;
+    let busy = false;
 
-    // Reset: ad[0] visible, all others parked below.
+    // Init: layer 0 visible, rest parked below
     layers.forEach((l, i) => {
-      l.classList.remove('current', 'exit');
       l.style.transition = 'none';
       l.style.transform  = i === 0 ? 'translateY(0)' : 'translateY(100%)';
+      l.style.zIndex     = i === 0 ? '2' : '1';
     });
     void screen.offsetHeight;
     layers.forEach(l => { l.style.transition = ''; });
 
-    // ---- Auto rotate ----
-    let autoTimer = null;
-    function startAuto() {
-      stopAuto();
-      autoTimer = setInterval(advance, AUTO_MS);
-    }
-    function stopAuto() {
-      if (autoTimer) clearInterval(autoTimer);
-      autoTimer = null;
-    }
-    function advance() {
-      const cur = layers[currentIdx];
-      const nxt = layers[(currentIdx + 1) % layers.length];
-      // Make sure the incoming ad is parked below (it always is, but if a
-      // half-finished drag was just snapped back it's already at +100% — fine).
-      nxt.style.transition = 'none';
-      nxt.style.transform  = 'translateY(100%)';
-      void nxt.offsetHeight;
-      nxt.style.transition = '';
-      // Animate.
-      cur.style.transform = 'translateY(-100%)';
-      nxt.style.transform = 'translateY(0)';
-      currentIdx = (currentIdx + 1) % layers.length;
+    // Slide incoming layer in from fromPct%, then park outgoing below
+    function slideIn(incoming, outgoing, fromPct, onDone) {
+      incoming.style.transition = 'none';
+      incoming.style.transform  = `translateY(${fromPct}%)`;
+      incoming.style.zIndex     = '3';
+      void incoming.offsetHeight;
+      incoming.style.transition = '';
+      incoming.style.transform  = 'translateY(0)';
+      busy = true;
+      setTimeout(() => {
+        incoming.style.zIndex = '2';
+        outgoing.style.zIndex = '1';
+        outgoing.style.transition = 'none';
+        outgoing.style.transform  = 'translateY(100%)';
+        void outgoing.offsetHeight;
+        outgoing.style.transition = '';
+        busy = false;
+        if (onDone) onDone();
+      }, DURATION);
     }
 
-    // ---- Manual drag-to-swipe-up ----
-    let dragging   = false;
-    let pid        = null;
-    let startY     = 0;
-    let lastY      = 0;
-    let lastT      = 0;
-    let velocity   = 0; // px/ms, negative = upward
-    let dy         = 0;
-    let H          = 0;
-    let activeNext = -1;
-    let activePrev = -1;
+    function advance(onDone) {
+      if (busy) return;
+      const nxtIdx = (currentIdx + 1) % layers.length;
+      slideIn(layers[nxtIdx], layers[currentIdx], 100, onDone);
+      currentIdx = nxtIdx;
+    }
+
+    function retreat(onDone) {
+      if (busy) return;
+      const prvIdx = (currentIdx - 1 + layers.length) % layers.length;
+      slideIn(layers[prvIdx], layers[currentIdx], -100, onDone);
+      currentIdx = prvIdx;
+    }
+
+    // Auto rotate
+    let autoTimer = null;
+    function startAuto() { stopAuto(); autoTimer = setInterval(() => advance(), AUTO_MS); }
+    function stopAuto()  { if (autoTimer) clearInterval(autoTimer); autoTimer = null; }
+
+    // Drag
+    let dragging = false, pid = null;
+    let startY = 0, lastY = 0, lastT = 0;
+    let velocity = 0, dy = 0, H = 0;
+    let activeNext = -1, activePrev = -1;
     let resumeTimer = null;
 
     function scheduleResume() {
@@ -965,32 +973,20 @@
     }
 
     screen.addEventListener('pointerdown', (e) => {
-      // ignore right/middle mouse buttons
       if (e.pointerType === 'mouse' && e.button !== 0) return;
+      if (busy) return;
       stopAuto();
       if (resumeTimer) { clearTimeout(resumeTimer); resumeTimer = null; }
-
-      dragging   = true;
-      pid        = e.pointerId;
-      startY     = e.clientY;
-      lastY      = e.clientY;
-      lastT      = performance.now();
-      velocity   = 0;
-      dy         = 0;
-      H          = screen.clientHeight;
+      dragging = true; pid = e.pointerId;
+      startY = lastY = e.clientY;
+      lastT = performance.now(); velocity = dy = 0; H = screen.clientHeight;
       activeNext = (currentIdx + 1) % layers.length;
       activePrev = (currentIdx - 1 + layers.length) % layers.length;
-
-      const cur = layers[currentIdx];
-      const nxt = layers[activeNext];
-      const prv = layers[activePrev];
-      cur.style.transition = 'none';
-      nxt.style.transition = 'none';
-      prv.style.transition = 'none';
-      cur.style.transform  = 'translateY(0)';
-      nxt.style.transform  = 'translateY(100%)';
-      prv.style.transform  = 'translateY(-100%)';
-
+      const nxt = layers[activeNext], prv = layers[activePrev];
+      nxt.style.transition = prv.style.transition = 'none';
+      nxt.style.transform = 'translateY(100%)'; nxt.style.zIndex = '3';
+      prv.style.transform = 'translateY(-100%)'; prv.style.zIndex = '3';
+      void screen.offsetHeight;
       screen.classList.add('dragging');
       try { screen.setPointerCapture(pid); } catch (_) {}
       e.preventDefault();
@@ -999,145 +995,88 @@
     screen.addEventListener('pointermove', (e) => {
       if (!dragging || e.pointerId !== pid) return;
       const now = performance.now();
-      const ddy = e.clientY - lastY;
-      const ddt = Math.max(1, now - lastT);
-      // EMA on instantaneous velocity for a smoother flick reading
-      velocity = velocity * 0.6 + (ddy / ddt) * 0.4;
-      lastY = e.clientY;
-      lastT = now;
-
+      velocity = velocity * 0.6 + ((e.clientY - lastY) / Math.max(1, now - lastT)) * 0.4;
+      lastY = e.clientY; lastT = now;
       dy = e.clientY - startY;
-      let pct = (dy / H) * 100;
-      if (pct < -100) pct = -100;
-      if (pct >  100) pct =  100;
-
+      const pct = Math.max(-100, Math.min(100, (dy / H) * 100));
       if (pct <= 0) {
-        layers[currentIdx].style.transform = `translateY(${pct}%)`;
         layers[activeNext].style.transform = `translateY(${100 + pct}%)`;
         layers[activePrev].style.transform = 'translateY(-100%)';
       } else {
-        layers[currentIdx].style.transform = `translateY(${pct}%)`;
         layers[activePrev].style.transform = `translateY(${-100 + pct}%)`;
         layers[activeNext].style.transform = 'translateY(100%)';
       }
     });
 
     function endDrag(e) {
-      if (!dragging) return;
-      if (e && e.pointerId !== pid) return;
+      if (!dragging || (e && e.pointerId !== pid)) return;
       dragging = false;
       screen.classList.remove('dragging');
-
-      const cur = layers[currentIdx];
-      const nxt = layers[activeNext];
-      const prv = layers[activePrev];
-      cur.style.transition = '';
-      nxt.style.transition = '';
-      prv.style.transition = '';
-
-      const pct        = (dy / H) * 100;
-      const flickedUp  = velocity <= -FLICK_VEL && pct < -2;
-      const flickedDn  = velocity >=  FLICK_VEL && pct >  2;
-      const commitUp   = flickedUp  || pct <= -COMMIT_PCT;
-      const commitDown = flickedDn  || pct >=  COMMIT_PCT;
-
+      const nxt = layers[activeNext], prv = layers[activePrev];
+      nxt.style.transition = prv.style.transition = '';
+      const pct      = (dy / H) * 100;
+      const commitUp = (velocity <= -FLICK_VEL && pct < -2) || pct <= -COMMIT_PCT;
+      const commitDn = (velocity >=  FLICK_VEL && pct >  2) || pct >=  COMMIT_PCT;
       if (commitUp) {
-        cur.style.transform = 'translateY(-100%)';
         nxt.style.transform = 'translateY(0)';
         prv.style.transform = 'translateY(-100%)';
-        currentIdx = activeNext;
-      } else if (commitDown) {
-        cur.style.transform = 'translateY(100%)';
+        busy = true;
+        const out = layers[currentIdx]; currentIdx = activeNext;
+        setTimeout(() => {
+          nxt.style.zIndex = '2'; prv.style.zIndex = out.style.zIndex = '1';
+          out.style.transition = 'none'; out.style.transform = 'translateY(100%)';
+          void out.offsetHeight; out.style.transition = ''; busy = false; scheduleResume();
+        }, DURATION);
+      } else if (commitDn) {
         prv.style.transform = 'translateY(0)';
         nxt.style.transform = 'translateY(100%)';
-        currentIdx = activePrev;
+        busy = true;
+        const out = layers[currentIdx]; currentIdx = activePrev;
+        setTimeout(() => {
+          prv.style.zIndex = '2'; nxt.style.zIndex = out.style.zIndex = '1';
+          out.style.transition = 'none'; out.style.transform = 'translateY(100%)';
+          void out.offsetHeight; out.style.transition = ''; busy = false; scheduleResume();
+        }, DURATION);
       } else {
-        cur.style.transform = 'translateY(0)';
         nxt.style.transform = 'translateY(100%)';
         prv.style.transform = 'translateY(-100%)';
+        setTimeout(() => { nxt.style.zIndex = prv.style.zIndex = '1'; scheduleResume(); }, DURATION);
       }
-      scheduleResume();
     }
 
-    screen.addEventListener('pointerup', endDrag);
-    screen.addEventListener('pointercancel', endDrag);
-    screen.addEventListener('lostpointercapture', endDrag);
-
+    screen.addEventListener('pointerup',          endDrag);
+    screen.addEventListener('pointercancel',       endDrag);
+    screen.addEventListener('lostpointercapture',  endDrag);
     startAuto();
 
-    // ---- External "Change image" button ----
-    // The image-slot has a built-in Replace button (in its shadow DOM) that
-    // calls the hidden file input. We just locate it on the current ad and
-    // click it — same path as if the user had hovered the slot.
-    const btn        = document.getElementById('changeBtn');
-    const label      = document.getElementById('changeBtnLabel');
-    const btnMobile  = document.getElementById('changeBtnMobile');
+    // Change-image buttons
+    function triggerCurrentSlot() {
+      const cur = layers[currentIdx], root = cur.shadowRoot;
+      if (!root) return;
+      const t = cur.hasAttribute('data-filled') ? root.querySelector('[data-act="replace"]') : root.querySelector('.empty');
+      if (t) t.click();
+    }
+    const btn         = document.getElementById('changeBtn');
+    const label       = document.getElementById('changeBtnLabel');
+    const btnMobile   = document.getElementById('changeBtnMobile');
     const labelMobile = document.getElementById('changeBtnLabelMobile');
 
-    function triggerCurrentSlot() {
-      const cur = layers[currentIdx];
-      const root = cur.shadowRoot;
-      if (!root) return;
-      const target = cur.hasAttribute('data-filled')
-        ? root.querySelector('[data-act="replace"]')
-        : root.querySelector('.empty');
-      if (target) target.click();
+    function syncLabels() {
+      const filled = layers[currentIdx].hasAttribute('data-filled');
+      if (label)       label.textContent       = filled ? 'Change image' : 'Add image';
+      if (labelMobile) labelMobile.textContent = filled ? 'Byt bild'     : 'Lägg till bild';
     }
-
-    if (btnMobile) {
-      btnMobile.addEventListener('click', (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        triggerCurrentSlot();
-      });
-      btnMobile.addEventListener('pointerdown', (e) => e.stopPropagation());
-      setInterval(() => {
-        if (labelMobile) {
-          const cur = layers[currentIdx];
-          labelMobile.textContent = cur.hasAttribute('data-filled') ? 'Byt bild' : 'Lägg till bild';
-        }
-      }, 200);
-    }
-
-    if (btn) {
-      // Adapt copy depending on whether the visible slot is filled.
-      function syncLabel() {
-        const cur = layers[currentIdx];
-        label.textContent = cur.hasAttribute('data-filled') ? 'Change image' : 'Add image';
-      }
-      // Re-sync whenever a slot's data-filled flips. MutationObserver fires
-      // on any attribute change — cheap, and there are only 4 slots.
-      const mo = new MutationObserver(syncLabel);
+    [btn, btnMobile].forEach(b => {
+      if (!b) return;
+      b.addEventListener('click',       (e) => { e.stopPropagation(); e.preventDefault(); triggerCurrentSlot(); });
+      b.addEventListener('pointerdown', (e) => e.stopPropagation());
+    });
+    if (btn || btnMobile) {
+      const mo = new MutationObserver(syncLabels);
       layers.forEach(l => mo.observe(l, { attributes: true, attributeFilter: ['data-filled'] }));
-      // Also re-sync on every swipe (currentIdx changed).
-      const origAdvance = advance;
-      // can't reassign const advance — patch via setInterval indirection:
-      // simpler: poll on click instead. Cheap.
-      syncLabel();
-
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        const cur = layers[currentIdx];
-        const root = cur.shadowRoot;
-        if (!root) return;
-        // Filled → hit the Replace button. Empty → click the empty-state
-        // chrome (same path it uses internally to open the file picker).
-        const target = cur.hasAttribute('data-filled')
-          ? root.querySelector('[data-act="replace"]')
-          : root.querySelector('.empty');
-        if (target) target.click();
-      });
-
-      // Don't let pointerdown on the button start a screen-drag.
-      btn.addEventListener('pointerdown', (e) => e.stopPropagation());
-
-      // Keep the label in sync after any swipe (auto or manual) by polling
-      // currentIdx via a lightweight ticker.
+      syncLabels();
       let lastIdx = currentIdx;
-      setInterval(() => {
-        if (lastIdx !== currentIdx) { lastIdx = currentIdx; syncLabel(); }
-      }, 200);
+      setInterval(() => { if (lastIdx !== currentIdx) { lastIdx = currentIdx; syncLabels(); } }, 200);
     }
   })();
 </script>
