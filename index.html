@@ -296,14 +296,9 @@
       width: 80vw;
     }
     .change-btn { display: none !important; }
-    .change-btn-mobile {
-      display: flex;
-    }
-    .hint {
-      font-size: 11px;
-      padding: 8px 14px;
-      white-space: nowrap;
-    }
+    .change-btn-mobile { display: flex; }
+    .hint { display: none !important; }
+    .save-ctrl { display: none; }
     .stop-sign { font-size: 11px; top: 14px; left: 16px; }
     .timetable { display: none; }
   }
@@ -362,6 +357,7 @@
     transition: transform 500ms cubic-bezier(0.4, 0, 0.2, 1);
     pointer-events: none;
     z-index: 1;
+    will-change: transform;
   }
 
   /* tiny corner brand */
@@ -924,7 +920,7 @@
     function slideIn(incoming, outgoing, fromPct, onDone) {
       incoming.style.transition = 'none';
       incoming.style.transform  = `translateY(${fromPct}%)`;
-      incoming.style.zIndex     = '3';
+      incoming.style.zIndex     = '10'; // above ::after (z:3) and ::before (z:4)
       void incoming.offsetHeight;
       incoming.style.transition = '';
       incoming.style.transform  = 'translateY(0)';
@@ -984,8 +980,8 @@
       activePrev = (currentIdx - 1 + layers.length) % layers.length;
       const nxt = layers[activeNext], prv = layers[activePrev];
       nxt.style.transition = prv.style.transition = 'none';
-      nxt.style.transform = 'translateY(100%)'; nxt.style.zIndex = '3';
-      prv.style.transform = 'translateY(-100%)'; prv.style.zIndex = '3';
+      nxt.style.transform = 'translateY(100%)'; nxt.style.zIndex = '10';
+      prv.style.transform = 'translateY(-100%)'; prv.style.zIndex = '10';
       void screen.offsetHeight;
       screen.classList.add('dragging');
       try { screen.setPointerCapture(pid); } catch (_) {}
