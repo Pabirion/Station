@@ -295,9 +295,9 @@
       bottom: 20%;
       width: 80vw;
     }
-    .change-btn {
-      opacity: 1 !important;
-      transform: translate(-50%, 0) !important;
+    .change-btn { display: none !important; }
+    .change-btn-mobile {
+      display: flex;
     }
     .hint {
       font-size: 11px;
@@ -305,7 +305,7 @@
       white-space: nowrap;
     }
     .stop-sign { font-size: 11px; top: 14px; left: 16px; }
-    .timetable { font-size: 10px; top: 14px; right: 16px; }
+    .timetable { display: none; }
   }
 
   .display-frame {
@@ -590,6 +590,31 @@
   .change-btn:hover { background: rgba(20,18,14,0.88); }
   .change-btn:active { transform: translate(-50%, 1px); }
 
+  /* Mobile-only upload button — full width at bottom of scene */
+  .change-btn-mobile {
+    display: none;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px;
+    background: rgba(10,10,14,0.88);
+    border: none;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    color: rgba(232,227,216,0.92);
+    font: 500 14px/1 'Inter', -apple-system, system-ui, sans-serif;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .change-btn-mobile svg { color: #d4a738; }
+
   /* Image-slot overrides — make the empty-state "glow" so the silhouette
      in front of the screen reads as a clean cutout against bright content. */
   image-slot {
@@ -612,31 +637,6 @@
     pointer-events: none;
   }
 
-  /* ---------- Pigeon perched on left side of screen ---------- */
-  .pigeon-outer {
-    position: absolute;
-    left: -5%;
-    top: -10%;
-    z-index: 2;
-    pointer-events: none;
-    transform: scaleX(-1); /* faces outward (left) */
-  }
-  .pigeon-outer svg {
-    display: block;
-    height: 3.8vh;
-    width: auto;
-  }
-  .peck-group {
-    transform-origin: 50px 29px;
-    animation: pigeon-peck 4.5s ease-in-out infinite;
-  }
-  @keyframes pigeon-peck {
-    0%, 100%  { transform: rotate(0deg); }
-    18%       { transform: rotate(25deg) translate(3px, 2px); }
-    28%       { transform: rotate(0deg); }
-    44%       { transform: rotate(25deg) translate(3px, 2px); }
-    54%       { transform: rotate(0deg); }
-  }
 </style>
 </head>
 <body>
@@ -814,33 +814,6 @@
       <span id="changeBtnLabel">Change image</span>
     </button>
 
-    <!-- Pigeon perched on the left side of the screen -->
-    <div class="pigeon-outer" aria-hidden="true">
-      <svg viewBox="0 0 80 60">
-        <path d="M8,28 L0,20 L2,36 Z" fill="#5a5c68"/>
-        <ellipse cx="30" cy="30" rx="22" ry="13" fill="#8a8c9a"/>
-        <ellipse cx="26" cy="31" rx="17" ry="8.5" fill="#70727e"/>
-        <path d="M13,34 Q27,27 43,33" stroke="#9a9ca8" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-        <path d="M14,37 Q27,31 42,36" stroke="#9a9ca8" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.6"/>
-        <ellipse cx="44" cy="23" rx="9" ry="7" fill="#4a7868" opacity="0.5"/>
-        <g class="peck-group">
-          <circle cx="52" cy="20" r="10" fill="#96989e"/>
-          <path d="M61,18.5 L70,20 L61,21.5 Z" fill="#a89040"/>
-          <circle cx="57" cy="18" r="2.2" fill="#181820"/>
-          <circle cx="57.5" cy="17.5" r="0.8" fill="rgba(255,255,255,0.88)"/>
-        </g>
-        <line x1="26" y1="42" x2="22" y2="53" stroke="#a89040" stroke-width="1.6"/>
-        <line x1="34" y1="42" x2="38" y2="53" stroke="#a89040" stroke-width="1.6"/>
-        <g stroke="#a89040" stroke-width="1.3" stroke-linecap="round">
-          <line x1="22" y1="53" x2="15" y2="56"/>
-          <line x1="22" y1="53" x2="22" y2="57"/>
-          <line x1="22" y1="53" x2="27" y2="56"/>
-          <line x1="38" y1="53" x2="31" y2="56"/>
-          <line x1="38" y1="53" x2="38" y2="57"/>
-          <line x1="38" y1="53" x2="43" y2="56"/>
-        </g>
-      </svg>
-    </div>
   </div>
 
   <!-- Chrome -->
@@ -855,6 +828,12 @@
     <b>2 MIN</b> · NORRGÅENDE<br>
     <b>5 MIN</b> · SÖDERGÅENDE
   </div>
+
+  <!-- Mobile upload button — full width at bottom -->
+  <button class="change-btn-mobile" id="changeBtnMobile" type="button" aria-label="Byt bild på annonsen">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.5 6.36L3 16"/><path d="M3 12a9 9 0 0 1 15.5-6.36L21 8"/><polyline points="21 3 21 8 16 8"/><polyline points="3 21 3 16 8 16"/></svg>
+    <span id="changeBtnLabelMobile">Byt bild</span>
+  </button>
 
   <div class="hint">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -1090,8 +1069,36 @@
     // The image-slot has a built-in Replace button (in its shadow DOM) that
     // calls the hidden file input. We just locate it on the current ad and
     // click it — same path as if the user had hovered the slot.
-    const btn   = document.getElementById('changeBtn');
-    const label = document.getElementById('changeBtnLabel');
+    const btn        = document.getElementById('changeBtn');
+    const label      = document.getElementById('changeBtnLabel');
+    const btnMobile  = document.getElementById('changeBtnMobile');
+    const labelMobile = document.getElementById('changeBtnLabelMobile');
+
+    function triggerCurrentSlot() {
+      const cur = layers[currentIdx];
+      const root = cur.shadowRoot;
+      if (!root) return;
+      const target = cur.hasAttribute('data-filled')
+        ? root.querySelector('[data-act="replace"]')
+        : root.querySelector('.empty');
+      if (target) target.click();
+    }
+
+    if (btnMobile) {
+      btnMobile.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        triggerCurrentSlot();
+      });
+      btnMobile.addEventListener('pointerdown', (e) => e.stopPropagation());
+      setInterval(() => {
+        if (labelMobile) {
+          const cur = layers[currentIdx];
+          labelMobile.textContent = cur.hasAttribute('data-filled') ? 'Byt bild' : 'Lägg till bild';
+        }
+      }, 200);
+    }
+
     if (btn) {
       // Adapt copy depending on whether the visible slot is filled.
       function syncLabel() {
