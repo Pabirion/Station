@@ -961,6 +961,7 @@
     let startY = 0, lastY = 0, lastT = 0;
     let velocity = 0, dy = 0, H = 0;
     let activeNext = -1, activePrev = -1;
+    let prvPrepped = false; // prv is staged lazily (only if user actually swipes down)
     let resumeTimer = null;
 
     function scheduleResume() {
@@ -978,11 +979,14 @@
       lastT = performance.now(); velocity = dy = 0; H = screen.clientHeight;
       activeNext = (currentIdx + 1) % layers.length;
       activePrev = (currentIdx - 1 + layers.length) % layers.length;
-      const nxt = layers[activeNext], prv = layers[activePrev];
-      nxt.style.transition = prv.style.transition = 'none';
-      nxt.style.transform = 'translateY(100%)'; nxt.style.zIndex = '3';
-      prv.style.transform = 'translateY(-100%)'; prv.style.zIndex = '3';
-      void screen.offsetHeight;
+      prvPrepped = false;
+      // Stage ONLY the next layer (below the screen).
+      // Staging prv here too caused a 200 % GPU jump that flashed on mobile.
+      const nxt = layers[activeNext];
+      nxt.style.transition = 'none';
+      nxt.style.transform  = 'translateY(100%)';
+      nxt.style.zIndex     = '3';
+      void nxt.offsetHeight; // commit position before any move
       screen.classList.add('dragging');
       try { screen.setPointerCapture(pid); } catch (_) {}
       e.preventDefault();
@@ -996,11 +1000,19 @@
       dy = e.clientY - startY;
       const pct = Math.max(-100, Math.min(100, (dy / H) * 100));
       if (pct <= 0) {
+        // Swiping up — slide next layer in from below
         layers[activeNext].style.transform = `translateY(${100 + pct}%)`;
-        layers[activePrev].style.transform = 'translateY(-100%)';
       } else {
+        // Swiping down — lazily stage prev layer above the screen on first downward move
+        if (!prvPrepped) {
+          const prv = layers[activePrev];
+          prv.style.transition = 'none';
+          prv.style.transform  = 'translateY(-100%)';
+          prv.style.zIndex     = '3';
+          void prv.offsetHeight;
+          prvPrepped = true;
+        }
         layers[activePrev].style.transform = `translateY(${-100 + pct}%)`;
-        layers[activeNext].style.transform = 'translateY(100%)';
       }
     });
 
@@ -1009,10 +1021,13 @@
       dragging = false;
       screen.classList.remove('dragging');
       const nxt = layers[activeNext], prv = layers[activePrev];
+      // Force-commit current drag positions BEFORE re-enabling transitions,
+      // otherwise some browsers start the snap animation from the wrong origin.
+      void screen.offsetHeight;
       nxt.style.transition = prv.style.transition = '';
       const pct      = (dy / H) * 100;
       const commitUp = (velocity <= -FLICK_VEL && pct < -2) || pct <= -COMMIT_PCT;
-      const commitDn = (velocity >=  FLICK_VEL && pct >  2) || pct >=  COMMIT_PCT;
+      const commitDn = prvPrepped && ((velocity >= FLICK_VEL && pct > 2) || pct >= COMMIT_PCT);
       if (commitUp) {
         nxt.style.transform = 'translateY(0)';
         prv.style.transform = 'translateY(-100%)';
@@ -1034,9 +1049,14 @@
           void out.offsetHeight; out.style.transition = ''; busy = false; scheduleResume();
         }, DURATION);
       } else {
+        // Snap back
         nxt.style.transform = 'translateY(100%)';
-        prv.style.transform = 'translateY(-100%)';
-        setTimeout(() => { nxt.style.zIndex = prv.style.zIndex = '1'; scheduleResume(); }, DURATION);
+        if (prvPrepped) prv.style.transform = 'translateY(-100%)';
+        setTimeout(() => {
+          nxt.style.zIndex = '1';
+          if (prvPrepped) prv.style.zIndex = '1';
+          scheduleResume();
+        }, DURATION);
       }
     }
 
